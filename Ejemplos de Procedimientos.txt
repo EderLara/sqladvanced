@@ -1,0 +1,86 @@
+-- Ejemplos de procedimientos almacenados:
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `TipoDocuCRUD`(
+    in vidTipoDocu int,
+    in vNombTiDo varchar(45),
+    in opcion varchar(45)
+)
+BEGIN
+-- Procedimiento almacenado para el crud de tipo de documento:
+-- Declaramos variables:
+DECLARE msj varchar(255);
+
+case 
+when opcion = 'guardar' then
+    -- Insertamos los datos en la tabla:
+    INSERT INTO TipoDocu values (vidTipoDocu,vNombTiDo);
+    set msj = concat('Se ha guardado el documento con nombre ',vNombTiDo);
+    SELECT msj;
+    
+    
+when opcion = 'modificar' then
+    -- Modificamos el nombre de la columna nombre de tipo de documento:
+    UPDATE TipoDocu
+    set NombTiDo = vNombTiDo
+    where idTipoDocu = vidTipoDocu;
+    -- Cuando suceda:
+    set msj = concat('Se ha Modificado el documento ahora con nombre ',vNombTiDo);
+    SELECT msj;
+
+end case;
+END
+
+-- Otro procedimiento Almacenado:
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `crudUser`(
+-- Parámetros de Entrada:
+in v_idUsuarios int, 
+in v_idTipoUser int, 
+in v_NumeIdUs varchar(45), 
+in v_NombUser varchar(200), 
+in v_ApelUser varchar(200), 
+in v_NickName varchar(45), 
+in v_PassUser varchar(45), 
+in boton varchar(45)
+)
+BEGIN
+-- Asignar valores a las variables:
+set @estado = 'Activo';
+-- Encripto el password
+set v_PassUser = sha(v_PassUser);
+-- Condicionamos la acción del botón:
+case 
+-- en caso de guardar:
+when boton = 'guardar' then
+-- insertamos en la base de datos:
+    insert into usuarios values (v_idUsuarios, v_idTipoUser, v_NumeIdUs, v_NombUser, v_ApelUser, v_NickName, v_PassUser, @estado);
+-- mostramos al guardado:
+select *, max(idUsuarios) from usuarios; 
+-- Fin de guardar:
+-- en caso de modificar:
+when boton = 'modificar' then
+    -- Modificamos el usuario solicitado:
+    update usuarios
+    -- asignamos los valores capturados en el formulario:
+    set NombUser = v_NombUser, ApelUser = v_ApelUser, PassUser = v_PassUser
+    where idUsuarios = v_idUsuarios and idTipoUser = v_idTipoUser;
+    -- Verificamos al usuario modificado:
+    select * from usuarios where idUsuarios = v_idUsuarios;
+    -- fin de modificar
+-- En caso de eliminar:
+when boton = 'eliminar' then
+    -- Reasigno el valor del campo estado:
+    set @estado = 'InActivo';
+    update usuarios 
+    set EstaUser = @estado
+    where idUsuarios = v_idUsuarios and idTipoUser = v_idTipoUser;
+    select * from usuarios where idUsuarios = v_idUsuarios;
+    -- Fin de modificar
+-- Buscar un usuario con por el nombre:
+when boton = 'buscar' then
+    set @buscar = concat('%',v_NombUser,'%');
+    select * from usuarios where NombUser like @buscar;
+-- Fin de la condicion
+end case;
+-- Fin del procedimiento almacenado
+END
